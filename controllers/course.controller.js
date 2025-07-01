@@ -47,42 +47,79 @@ export const createCourse = async (req, res) => {
  *     summary: Get all courses
  *     tags: [Courses]
  *     parameters:
+ * 
+ *       # Pagination parameters 
  *       - in: query
  *         name: page
- *         schema: { type: integer, default: 1 }
+ *         schema:
+ *           type: integer
+ *           default: 1
  *         description: Page number
  *       - in: query
  *         name: limit
- *         schema: { type: integer, default: 10 }
+ *         schema:
+ *           type: integer
+ *           default: 10
  *         description: Number of items per page
+ *       
+ *       # Sorting parameter 
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: asc
+ *         description: Sort order based on created time
+ *       
+ *       # Eager loading (populate) parameter 
+ *       - in: query
+ *         name: populate
+ *         schema:
+ *           type: string
+ *           example: teacher,students
+ *         description: Comma-separated list of related models to include (e.g., teacher, students)
+ *         
  *     responses:
  *       200:
  *         description: List of courses
  */
+
 export const getAllCourses = async (req, res) => {
 
-    // take certain amount at a time
+    // == 1. Pagination ==
     const limit = parseInt(req.query.limit) || 10;
-    // which page to take
     const page = parseInt(req.query.page) || 1;
 
-    const total = await db.Course.count();
+    // == 2. Sorting ==
+    const sort  = req.query.sort === 'desc' ? 'DESC' : 'ASC';
+
+    // == 3. Eager Laoding (Populate) ==
+    const populate = req.query.populate?.split(',') || [];
+    
+    // Build the lsit of models to include in the query
+    const includeModels = [];
+    if (populate.includes('teacher')) includeModels.push(db.Teacher);  // Populate teacher info
+    if (populate.includes('student')) includeModels.push(db.Student);  // Populate student list
 
     try {
-        const courses = await db.Course.findAll(
-            {
-                // include: [db.Student, db.Teacher],
-                limit: limit, offset: (page - 1) * limit
-            }
-        );
-        res.json({
-            meta: {
-                totalItems: total,
-                page: page,
-                totalPages: Math.ceil(total / limit),
-            },
-            data: courses,
+        // Get total count of courses for pagination metadata
+        const total = await db.Course.count();
+
+        const courses = await db.Course.findAll({
+            // include: [db.Student, db.Teacher],
+            limit,
+            offset: (page - 1) * limit,
+            order: [['createdAt', sort]],
+            include: includeModels
         });
+
+        res.json({
+            total: total,
+            page: page,
+            data: courses,
+            totalPages: Math.ceil(total / limit),
+        });
+
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
