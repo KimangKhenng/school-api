@@ -6,7 +6,7 @@ dotenv.config();
 
 const NUM_TEACHERS = 50;
 const NUM_COURSES = 100;
-const NUM_STUDENTS = 100;
+const NUM_STUDENTS = 2000;
 
 async function seed() {
     try {
