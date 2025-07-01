@@ -48,7 +48,7 @@ PORT=3000
 ### 4. Run the Server
 
 ```bash
-npm run dev
+npm start
 ```
 
 Visit: [http://localhost:3000/docs](http://localhost:3000/api-docs)
@@ -59,7 +59,7 @@ Visit: [http://localhost:3000/docs](http://localhost:3000/api-docs)
 
 ```
 .
-├── index.js
+├── app.js
 ├── config
 │   └── swagger.js
 ├── controllers
@@ -83,7 +83,7 @@ Visit: [http://localhost:3000/docs](http://localhost:3000/api-docs)
 To populate the database with fake students, courses, and teachers using Faker.js:
 
 ```bash
-npm run seed
+node seed.js
 ```
 
 This will:
