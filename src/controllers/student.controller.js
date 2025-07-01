@@ -7,6 +7,29 @@ import db from '../models/index.js';
  *   description: Student management
  */
 
+/**
+ * @swagger
+ * /students:
+ *   post:
+ *     summary: Create a new student
+ *     tags: [Students]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, email]
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Student created
+ */
+
 export const createStudent = async (req, res) => {
     try {
         const student = await db.Student.create(req.body);
@@ -22,14 +45,53 @@ export const createStudent = async (req, res) => {
  *   get:
  *     summary: Get all students
  *     tags: [Students]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *         description: Number of items per page
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: asc
+ *         description: Sort order based on creation time
+ *       - in: query
+ *         name: populate
+ *         schema:
+ *           type: string
+ *           enum: [true, false]
+ *           default: false
+ *         description: Include enrolled course data if true
  *     responses:
  *       200:
  *         description: List of students
  */
 export const getAllStudents = async (req, res) => {
+
+    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const includeCourse = req.query.populate === 'true';
+
+    const total = await db.Student.count();
     try {
-        const students = await db.Student.findAll({ include: db.Course });
-        res.json(students);
+        const sortOrder = req.query.sort === 'desc' ? 'DESC' : 'ASC';
+        const students = await db.Student.findAll({
+            include: includeCourse ? db.Course : undefined,
+            limit: limit, offset: (page - 1) * limit,
+            order: [['createdAt', sortOrder]]
+        });
+        res.json({
+            total: total,
+            page: page,
+            data: students,
+            totalPages: Math.ceil(total / limit),
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -77,7 +139,14 @@ export const getStudentById = async (req, res) => {
  *       required: true
  *       content:
  *         application/json:
- *           schema: { type: object }
+ *           schema:
+ *             type: object
+ *             required: [name, email]
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Updated

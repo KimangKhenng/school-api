@@ -55,6 +55,20 @@ export const createCourse = async (req, res) => {
  *         name: limit
  *         schema: { type: integer, default: 10 }
  *         description: Number of items per page
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: asc
+ *         description: Sort order based on creation time
+ *       - in: query
+ *         name: populate
+ *         schema:
+ *           type: boolean
+ *           enum: [true, false]
+ *           default: false
+ *         description: Include students and teachers belong to course
  *     responses:
  *       200:
  *         description: List of courses
@@ -63,14 +77,17 @@ export const getAllCourses = async (req, res) => {
 
     const limit = parseInt(req.query.limit) || 10;
     const page = parseInt(req.query.page) || 1;
+    const populate = req.query.populate === 'true';
 
     const total = await db.Course.count();
 
     try {
+        const sortOrder = req.query.sort === 'desc' ? 'DESC' : 'ASC';
         const courses = await db.Course.findAll(
             {
-                // include: [db.Student, db.Teacher],
-                limit: limit, offset: (page - 1) * limit
+                include: populate ? [db.Student, db.Teacher] : undefined,
+                limit: limit, offset: (page - 1) * limit,
+                order: [['createdAt', sortOrder]]
             }
         );
         res.json({
