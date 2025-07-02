@@ -6,7 +6,7 @@ dotenv.config({path: "../.env.example"});
 
 const NUM_TEACHERS = 50;
 const NUM_COURSES = 100;
-const NUM_STUDENTS = 2000;
+const NUM_STUDENTS = 100;
 
 async function seed() {
     try {

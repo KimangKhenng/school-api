@@ -78,6 +78,7 @@ export const createCourse = async (req, res) => {
  */
 export const getAllCourses = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
+    // which page to take
     const page = parseInt(req.query.page) || 1;
     const sort = req.query.sort === 'desc' ? 'DESC' : 'ASC';
 
@@ -103,10 +104,12 @@ export const getAllCourses = async (req, res) => {
             include: include
         });
         res.json({
-            total: total,
-            page: page,
+            meta: {
+                totalItems: total,
+                page: page,
+                totalPages: Math.ceil(total / limit),
+            },
             data: courses,
-            totalPages: Math.ceil(total / limit),
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
