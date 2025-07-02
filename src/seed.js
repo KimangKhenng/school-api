@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import db from './models/index.js';
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({path: "../.env.example"});
 
 const NUM_TEACHERS = 50;
 const NUM_COURSES = 100;

@@ -49,30 +49,59 @@ export const createCourse = async (req, res) => {
  *     parameters:
  *       - in: query
  *         name: page
- *         schema: { type: integer, default: 1 }
+ *         schema:
+ *           type: integer
+ *           default: 1
  *         description: Page number
  *       - in: query
  *         name: limit
- *         schema: { type: integer, default: 10 }
+ *         schema:
+ *           type: integer
+ *           default: 10
  *         description: Number of items per page
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: asc
+ *         description: Sort by created time (asc for oldest first, desc for newest first)
+ *       - in: query
+ *         name: populate
+ *         schema:
+ *           type: string
+ *           example: teacher,students
+ *         description: Comma-separated list of related models to include (e.g. teacher, students)
  *     responses:
  *       200:
  *         description: List of courses
  */
 export const getAllCourses = async (req, res) => {
-
     const limit = parseInt(req.query.limit) || 10;
     const page = parseInt(req.query.page) || 1;
+    const sort = req.query.sort === 'desc' ? 'DESC' : 'ASC';
+
+    // Parse populate param (e.g., "teacher,students")
+    const populate = req.query.populate ? req.query.populate.split(',') : [];
+
+    // Build include array based on populate param
+    const include = [];
+    if (populate.includes('teacher')) {
+        include.push({ model: db.Teacher, attributes: ['id', 'name'] });
+    }
+    if (populate.includes('students')) {
+        include.push({ model: db.Student, attributes: ['id', 'name'] });
+    }
 
     const total = await db.Course.count();
 
     try {
-        const courses = await db.Course.findAll(
-            {
-                // include: [db.Student, db.Teacher],
-                limit: limit, offset: (page - 1) * limit
-            }
-        );
+        const courses = await db.Course.findAll({
+            limit: limit,
+            offset: (page - 1) * limit,
+            order: [['createdAt', sort]],
+            include: include
+        });
         res.json({
             total: total,
             page: page,
