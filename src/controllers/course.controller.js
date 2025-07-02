@@ -55,24 +55,47 @@ export const createCourse = async (req, res) => {
  *         name: limit
  *         schema: { type: integer, default: 10 }
  *         description: Number of items per page
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: asc
+ *         description: Sort order by created time
+ *       - in: query
+ *         name: populate
+ *         schema:
+ *           type: string
+ *           example: teacherId,studentId
+ *         description: Comma-separated list of relations to populate (e.g., teacherId, studentId)
  *     responses:
  *       200:
  *         description: List of courses
  */
 export const getAllCourses = async (req, res) => {
-
     const limit = parseInt(req.query.limit) || 10;
     const page = parseInt(req.query.page) || 1;
+    const sort = req.query.sort === 'desc' ? 'DESC' : 'ASC';
+    const populate = req.query.populate ? req.query.populate.split(',') : [];
+
+    // Build include array for eager loading
+    const include = [];
+    if (populate.includes('teacherId') || populate.includes('TeacherId') || populate.includes('teacher')) {
+        include.push(db.Teacher);
+    }
+    if (populate.includes('studentId') || populate.includes('StudentId') || populate.includes('student')) {
+        include.push(db.Student);
+    }
 
     const total = await db.Course.count();
 
     try {
-        const courses = await db.Course.findAll(
-            {
-                // include: [db.Student, db.Teacher],
-                limit: limit, offset: (page - 1) * limit
-            }
-        );
+        const courses = await db.Course.findAll({
+            limit: limit,
+            offset: (page - 1) * limit,
+            order: [['createdAt', sort]],
+            include: include.length > 0 ? include : undefined,
+        });
         res.json({
             total: total,
             page: page,

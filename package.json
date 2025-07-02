@@ -10,7 +10,7 @@
   },
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "This is a RESTful API built using **Express.js**, **Sequelize ORM**, and **MySQL** to manage Students, Courses, and Teachers. It includes full CRUD operations, Swagger API documentation, and a Faker-based database seeder.",
   "dependencies": {
     "dotenv": "^17.0.0",
     "express": "^5.1.0",
@@ -21,5 +21,13 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^9.8.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Homey123-Chut/school-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Homey123-Chut/school-api/issues"
+  },
+  "homepage": "https://github.com/Homey123-Chut/school-api#readme"
 }
