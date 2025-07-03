@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-dotenv.config({path: '../.env.example'});
+dotenv.config();
 
 export default {
     HOST: process.env.DB_HOST,
@@ -9,3 +9,4 @@ export default {
     PORT: process.env.DB_PORT,
     dialect: "mysql"
 };
+
