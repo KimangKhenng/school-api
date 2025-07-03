@@ -44,14 +44,53 @@ export const createTeacher = async (req, res) => {
  *   get:
  *     summary: Get all teachers
  *     tags: [Teachers]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *         description: Number of items per page
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: asc
+ *         description: Sort order based on creation time
+ *       - in: query
+ *         name: populate
+ *         schema: 
+ *           type: boolean
+ *           enum: [true, false]
+ *           default: false
+ *         description: Include course that teacher teach
  *     responses:
  *       200:
  *         description: List of teachers
  */
 export const getAllTeachers = async (req, res) => {
+
+    const includeCourse = req.query.populate === "true";
+    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const total = await db.Teacher.count();
+
     try {
-        const teachers = await db.Teacher.findAll({ include: db.Course });
-        res.json(teachers);
+        const sortOrder = req.query.order === "desc" ? 'DESC' : 'ASC';
+        const teachers = await db.Teacher.findAll({
+            include: includeCourse ? db.Course : undefined,
+            limit: limit, offset: (page - 1) * limit,
+            order: [['createdAt', sortOrder]]
+        });
+        res.json({
+            total: total,
+            page: page,
+            data: teachers,
+            totalPages: Math.ceil(total / limit),
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
