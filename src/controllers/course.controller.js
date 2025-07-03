@@ -63,21 +63,42 @@ export const getAllCourses = async (req, res) => {
 
     const limit = parseInt(req.query.limit) || 10;
     const page = parseInt(req.query.page) || 1;
-
+    const sort = req.query.sort ? req.query.sort.toUpperCase() : 'ASC';
     const total = await db.Course.count();
+    const populate = req.query.populate ? req.query.populate.split(',') : [];
+
+    // Validate sort parameter
+    if (!['ASC', 'DESC'].includes(sort)) {
+        return res
+            .status(400)
+            .json({ error: 'Invalid sort value. Use \"asc\" or \"desc\".' });
+    }
+
+    // Build include array based on populate parameter
+    const include = [];
+    if (populate.includes('teacherId')) {
+        include.push({ model: db.Teacher, as: 'Teacher' });
+    }
+    if (populate.includes('studentIds')) {
+        include.push({ model: db.Student, as: 'Students' });
+    }
 
     try {
-        const courses = await db.Course.findAll(
-            {
-                // include: [db.Student, db.Teacher],
-                limit: limit, offset: (page - 1) * limit
-            }
-        );
+        const total = await db.Course.count();
+        const courses = await db.Course.findAll({
+            limit: limit,
+            offset: (page - 1) * limit,
+            order: [['createdAt', sort]],
+            include: include, // Use the dynamic include array
+        });
         res.json({
-            total: total,
-            page: page,
             data: courses,
-            totalPages: Math.ceil(total / limit),
+            meta: {
+                total: total,
+                page: page,
+                limit: limit,
+                totalPages: Math.ceil(total / limit),
+            },
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
