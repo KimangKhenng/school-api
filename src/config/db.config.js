@@ -9,3 +9,4 @@ export default {
     PORT: process.env.DB_PORT,
     dialect: "mysql"
 };
+

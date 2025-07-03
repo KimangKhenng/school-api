@@ -1,3 +1,4 @@
+import { Model } from 'sequelize';
 import db from '../models/index.js';
 
 /**
@@ -55,6 +56,18 @@ export const createCourse = async (req, res) => {
  *         name: limit
  *         schema: { type: integer, default: 10 }
  *         description: Number of items per page
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *         type: string
+ *         default: id
+ *         description: sort of Course
+ *       - in : query
+ *         name: include
+ *         schema:
+ *         type: string
+ *         default: 
+ *         description: include tables
  *     responses:
  *       200:
  *         description: List of courses
@@ -65,14 +78,30 @@ export const getAllCourses = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     // which page to take
     const page = parseInt(req.query.page) || 1;
+    const sort = req.query.sort || 'id';
+    const include= req.query.include ;
+    const includeOption = [];
+    if(include){
+       const includeModels = include.split(',');
+        for(const name of includeModels){
+            const model= db[name];
+            if(model){
+                includeOption.push({model});
+            }else{
+                res.status(400).json(err);
+            }
+        }
+    }
 
     const total = await db.Course.count();
 
     try {
         const courses = await db.Course.findAll(
             {
-                // include: [db.Student, db.Teacher],
-                limit: limit, offset: (page - 1) * limit
+                include: includeOption,
+                limit: limit, offset: (page - 1) * limit,
+                order:[[sort,'ASC']],
+                
             }
         );
         res.json({
