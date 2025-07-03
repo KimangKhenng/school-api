@@ -30,6 +30,7 @@ import db from '../models/index.js';
  *         description: Teacher created
  */
 export const createTeacher = async (req, res) => {
+
     try {
         const teacher = await db.Teacher.create(req.body);
         res.status(201).json(teacher);
@@ -40,18 +41,56 @@ export const createTeacher = async (req, res) => {
 
 /**
  * @swagger
- * /teachers:
+ * /Teachers:
  *   get:
- *     summary: Get all teachers
+ *     summary: Get all Teachers
  *     tags: [Teachers]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *         description: Number of items per page
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           default: id
+ *         description: Sort by field (default is 'id')
+ *       - in: query
+ *         name: include
+ *         schema:
+ *         type: string
+ *         default: 
+ *         description: include Table 
  *     responses:
  *       200:
- *         description: List of teachers
+ *         description: List of Teachers
  */
 export const getAllTeachers = async (req, res) => {
+    const limit= parseInt(req.query.limit) || 10;
+    const page= parseInt(req.query.page) || 1;
+    const sort = req.query.sort || 'id';
+    const include= req.query.include;
+    const includeOption= (include === 'Course')?  [{model: db.Course}]: [];
+    const total = await db.Teacher.count();
     try {
-        const teachers = await db.Teacher.findAll({ include: db.Course });
-        res.json(teachers);
+        const teachers = await db.Teacher.findAll({
+             include: includeOption,
+            limit : limit,offset:(page-1)* limit,
+            order:[[sort,'ASC']]
+            });
+        res.json({
+            meta:{
+                totalTeacher:total,
+                page: page,
+                totalPages:Math.ceil(total/limit)
+            },
+            data:teachers
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
