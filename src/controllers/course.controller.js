@@ -61,7 +61,9 @@ export const createCourse = async (req, res) => {
  */
 export const getAllCourses = async (req, res) => {
 
+    // take certain amount at a time
     const limit = parseInt(req.query.limit) || 10;
+    // which page to take
     const page = parseInt(req.query.page) || 1;
     const sort = req.query.sort ? req.query.sort.toUpperCase() : 'ASC';
     const total = await db.Course.count();

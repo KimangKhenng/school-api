@@ -12,7 +12,7 @@ This is a RESTful API built using **Express.js**, **Sequelize ORM**, and **MySQL
 - 🔁 Associations:
   - One Teacher teaches many Courses
   - Many Students enroll in many Courses (Many-to-Many)
-- 📚 Swagger documentation (`/api-docs`)
+- 📚 Swagger documentation (`/docs`)
 - 🧪 Faker.js seeder for generating test data
 
 ---
@@ -98,7 +98,7 @@ This will:
 Swagger UI is available at:
 
 ```
-http://localhost:3000/api-docs
+http://localhost:3000/docs
 ```
 
 It includes all CRUD endpoints for:
