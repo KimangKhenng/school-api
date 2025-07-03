@@ -27,14 +27,43 @@ export const createStudent = async (req, res) => {
  *         description: List of students
  */
 export const getAllStudents = async (req, res) => {
+    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const sort = req.query.sort === 'desc' ? 'desc' : 'asc';
+    const populate = req.query.populate ? req.query.populate.split(',') : [];
+
+    const include = [];
+    if(populate.includes('course'))
+    {
+        include.push({ model: db.Course, attributes: ['title']});
+    }
+    if(populate.includes('teacher'))
+    {
+        include.push({ model: db.Teacher, attributes: ['name']});
+    }
+
+
+    const total = await db.Student.count();
     try {
-        const students = await db.Student.findAll({ include: db.Course });
-        res.json(students);
+        const students = await db.Student.findAll(
+            { 
+                limit: limit,
+                offset: (page -1) * limit,
+                order: [['createdAt', sort]],
+                include: include
+            });
+        res.json(
+            {
+                total: total,
+                page: page,
+                data: students,
+                totalPage: Math.ceil(total / limit)
+            }
+        );
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
-
 /**
  * @swagger
  * /students/{id}:

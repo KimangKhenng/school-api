@@ -5,7 +5,7 @@ import courseRoutes from './routes/course.routes.js';
 import teacherRoutes from './routes/teacher.routes.js';
 import { serveSwagger, setupSwagger } from './config/swagger.js';
 
-dotenv.config();
+dotenv.config({path: './.env.example'});
 const app = express();
 const PORT = process.env.PORT || 3000;
 

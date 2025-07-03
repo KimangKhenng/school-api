@@ -49,9 +49,35 @@ export const createTeacher = async (req, res) => {
  *         description: List of teachers
  */
 export const getAllTeachers = async (req, res) => {
+    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const sort = req.query.sort === 'desc' ? 'desc' : 'asc';
+    const populate = req.query.populate ? req.query.populate.split(',') : [];
+
+    const include = [];
+    if(populate.includes('course'))
+    {
+        include.push({ model: db.Course, attributes: ['title']})
+    }
+    if(populate.includes('students'))
+    {
+        include.push({ model: db.Student, attributes: ['name']})
+    }
+
+    const total = await db.Teacher.count();
     try {
-        const teachers = await db.Teacher.findAll({ include: db.Course });
-        res.json(teachers);
+        const teachers = await db.Teacher.findAll({
+            limit: limit,
+            offset: (page - 1) * limit,
+            order: [['createdAt', sort]],
+            include: include
+        });
+        res.json({
+            total: total,
+            page: page,
+            data: teachers,
+            totalPage: Math.ceil(total / limit)
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
