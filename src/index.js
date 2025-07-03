@@ -20,3 +20,4 @@ app.use('/teachers', teacherRoutes);
 app.get('/', (req, res) => res.send('Welcome to School API!'));
 
 app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+
