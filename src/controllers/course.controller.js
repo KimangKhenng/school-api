@@ -98,7 +98,6 @@ export const getAllCourses = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
-
 /**
  * @swagger
  * /courses/{id}:
