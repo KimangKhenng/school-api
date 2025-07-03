@@ -5,7 +5,7 @@ import courseRoutes from './routes/course.routes.js';
 import teacherRoutes from './routes/teacher.routes.js';
 import { serveSwagger, setupSwagger } from './config/swagger.js';
 
-dotenv.config();
+dotenv.config({path: './.env'});
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -20,3 +20,4 @@ app.use('/teachers', teacherRoutes);
 app.get('/', (req, res) => res.send('Welcome to School API!'));
 
 app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+

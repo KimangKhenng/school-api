@@ -60,21 +60,32 @@ export const createCourse = async (req, res) => {
  *         description: List of courses
  */
 export const getAllCourses = async (req, res) => {
-
-    // take certain amount at a time
     const limit = parseInt(req.query.limit) || 10;
     // which page to take
     const page = parseInt(req.query.page) || 1;
+    const sort = req.query.sort === 'desc' ? 'DESC' : 'ASC';
+
+    // Parse populate param (e.g., "teacher,students")
+    const populate = req.query.populate ? req.query.populate.split(',') : [];
+
+    // Build include array based on populate param
+    const include = [];
+    if (populate.includes('teacher')) {
+        include.push({ model: db.Teacher, attributes: ['id', 'name'] });
+    }
+    if (populate.includes('students')) {
+        include.push({ model: db.Student, attributes: ['id', 'name'] });
+    }
 
     const total = await db.Course.count();
 
     try {
-        const courses = await db.Course.findAll(
-            {
-                // include: [db.Student, db.Teacher],
-                limit: limit, offset: (page - 1) * limit
-            }
-        );
+        const courses = await db.Course.findAll({
+            limit: limit,
+            offset: (page - 1) * limit,
+            order: [['createdAt', sort]],
+            include: include
+        });
         res.json({
             meta: {
                 totalItems: total,
@@ -87,7 +98,6 @@ export const getAllCourses = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
-
 /**
  * @swagger
  * /courses/{id}:
